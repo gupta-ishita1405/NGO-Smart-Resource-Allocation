@@ -1,122 +1,17 @@
-# NeedSync — Silent & Smart Resource Allocation Platform
+# NeedSync
 
-> *"Most platforms assume people can ask for help publicly. We built NeedSync for those who can't."*
-
-A web platform that connects people in need with the right volunteers — anonymously, locally, and quickly. Built for hackathon prototyping with a production-grade architecture.
+A community platform that connects people who need help with volunteers who can provide it. Users can submit assistance requests, volunteers can browse and accept them, and everyone can track progress in real time.
 
 ---
 
 ## Tech Stack
 
-| Layer    | Technology                           |
-|----------|--------------------------------------|
-| Frontend | React 19 + Tailwind CSS + shadcn/ui  |
-| Backend  | FastAPI (Python 3.10+)               |
-| Database | MongoDB                              |
-| Auth     | JWT (Bearer token) with bcrypt       |
-| Icons    | lucide-react                         |
-| Fonts    | Cormorant Garamond + Manrope         |
-
----
-
-## Features
-
-- **Anonymous help requests** — 4 categories: Food, Medical, Safety, Emotional Support
-- **Smart matching engine** — ranks volunteers by location + skills + trust score
-- **Urgency system** — High / Medium / Low with priority sorting
-- **Trust score** — automatically updates when volunteers complete tasks
-- **Volunteer dashboard** — accept/complete requests, see live stats
-- **Tracking codes** — every request gets a `NS-XXXXXXX` code for status updates
-- **Hyperlocal filtering** — by city, category, urgency
-
----
-
-## Quick Start (Local Desktop Setup)
-
-### Prerequisites
-
-Install these on your machine:
-
-1. **Node.js 18+** — https://nodejs.org/ (`node --version` should show 18+)
-2. **Yarn** — `npm install -g yarn`
-3. **Python 3.10+** — https://www.python.org/ (`python3 --version`)
-4. **MongoDB Community** — https://www.mongodb.com/try/download/community
-   - Start MongoDB locally: `mongod` (or use MongoDB Compass / Atlas)
-
-### Step 1 — Clone / Extract
-
-```bash
-unzip needsync.zip
-cd needsync
-```
-
-### Step 2 — Backend setup
-
-```bash
-cd backend
-python3 -m venv venv
-
-# Mac / Linux
-source venv/bin/activate
-# Windows
-# venv\Scripts\activate
-
-pip install -r requirements.txt
-```
-
-Create / edit `backend/.env`:
-
-```
-MONGO_URL="mongodb://localhost:27017"
-DB_NAME="needsync_db"
-CORS_ORIGINS="http://localhost:3000"
-JWT_SECRET="change-me-to-a-random-64-char-string"
-ADMIN_EMAIL="admin@needsync.org"
-ADMIN_PASSWORD="Admin@123"
-```
-
-Run the backend:
-
-```bash
-uvicorn server:app --reload --host 0.0.0.0 --port 8001
-```
-
-The API will be live at **http://localhost:8001/api**.
-
-On first run, two seed users are created automatically:
-- `admin@needsync.org` / `Admin@123`
-- `demo@needsync.org` / `Demo@123`
-
-### Step 3 — Frontend setup
-
-In a new terminal:
-
-```bash
-cd frontend
-yarn install
-```
-
-Create / edit `frontend/.env`:
-
-```
-REACT_APP_BACKEND_URL=http://localhost:8001
-WDS_SOCKET_PORT=0
-```
-
-Run the frontend:
-
-```bash
-yarn start
-```
-
-App opens at **http://localhost:3000**.
-
-### Step 4 — Try it!
-
-1. Visit `http://localhost:3000`
-2. Click **"Ask for Help"** → submit an anonymous request → copy your `NS-XXXX` code
-3. **Login** as `demo@needsync.org` / `Demo@123` → open **Dashboard**
-4. Accept the request, then mark it complete → trust score goes up
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React, Tailwind CSS, shadcn/ui, React Router |
+| Backend | FastAPI (Python 3.14+) |
+| Database | MongoDB (via Motor async driver) |
+| Auth | JWT (PyJWT) + bcrypt |
 
 ---
 
@@ -125,41 +20,160 @@ App opens at **http://localhost:3000**.
 ```
 needsync/
 ├── backend/
-│   ├── server.py            # FastAPI app + all endpoints
-│   ├── requirements.txt
-│   └── .env
-├── frontend/
-│   ├── src/
-│   │   ├── App.js
-│   │   ├── api.js           # axios with JWT interceptor
-│   │   ├── context/AuthContext.jsx
-│   │   ├── components/      # Navbar, Tags, ui/...
-│   │   └── pages/           # Landing, RequestHelp, Track, Browse, Login, Register, Dashboard
-│   ├── package.json
-│   └── .env
-└── README.md
+│   ├── server.py          # FastAPI app — all routes and business logic
+│   ├── requirements.txt   # Python dependencies
+│   └── .env               # Environment variables (see setup below)
+└── frontend/
+    ├── src/
+    │   ├── App.js          # Routes
+    │   ├── pages/          # Landing, RequestHelp, Track, Browse, Login, Register, Dashboard
+    │   ├── components/     # Navbar, shadcn/ui components
+    │   ├── context/        # AuthContext (JWT session management)
+    │   └── api.js          # Axios base config
+    ├── package.json
+    └── .env.example
 ```
 
 ---
 
-## API Reference
+## Prerequisites
 
-| Method | Endpoint                            | Auth | Description                    |
-|--------|-------------------------------------|------|--------------------------------|
-| POST   | `/api/auth/register`                | —    | Create volunteer account       |
-| POST   | `/api/auth/login`                   | —    | Returns `{user, token}`        |
-| GET    | `/api/auth/me`                      | ✓    | Current user                   |
-| POST   | `/api/requests`                     | —    | Create help request (anon ok)  |
-| GET    | `/api/requests`                     | —    | List + filter requests         |
-| GET    | `/api/requests/track/{code}`        | —    | Track by `NS-XXXXX` code       |
-| GET    | `/api/requests/{id}`                | —    | Single request                 |
-| POST   | `/api/requests/{id}/accept`         | ✓    | Volunteer accepts              |
-| POST   | `/api/requests/{id}/complete`       | ✓    | Mark completed (+trust score)  |
-| POST   | `/api/requests/{id}/cancel`         | ✓    | Release back to pool           |
-| GET    | `/api/match/{request_id}`           | —    | Top 5 matched volunteers       |
-| GET    | `/api/volunteer/dashboard`          | ✓    | Volunteer dashboard data       |
-| GET    | `/api/stats/public`                 | —    | Counts for landing page        |
+- Python 3.14+
+- Node.js 18+
+- MongoDB Community Server running on `localhost:27017`
+
+> **MongoDB not running?** Download it from [mongodb.com/try/download/community](https://www.mongodb.com/try/download/community), install it, then start the service before running the backend.
 
 ---
 
+## Setup
 
+### 1. Clone the repo
+
+```bash
+git clone <your-repo-url>
+cd needsync
+```
+
+### 2. Backend
+
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate      # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Create a `.env` file in `backend/`:
+
+```env
+MONGO_URL=mongodb://localhost:27017/
+DB_NAME=needsync
+JWT_SECRET=your-secret-key-here
+ADMIN_EMAIL=admin@needsync.org
+ADMIN_PASSWORD=Admin@123
+```
+
+Start the server:
+
+```bash
+uvicorn server:app --reload
+```
+
+The API will be available at `http://localhost:8000`. Interactive docs at `http://localhost:8000/docs`.
+
+### 3. Frontend
+
+```bash
+cd frontend
+npm install
+```
+
+Create a `.env` file in `frontend/` (see `.env.example`):
+
+```env
+REACT_APP_API_URL=http://localhost:8000
+```
+
+Start the dev server:
+
+```bash
+npm start
+```
+
+The app will open at `http://localhost:3000`.
+
+---
+
+## Seeded Accounts
+
+On first startup the backend seeds two accounts for testing:
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | `admin@needsync.org` | `Admin@123` |
+| Volunteer (demo) | `demo@needsync.org` | `Demo@123` |
+
+---
+
+## Pages
+
+| Route | Description |
+|-------|-------------|
+| `/` | Landing page |
+| `/request` | Submit a help request |
+| `/track` | Track a request by code |
+| `/browse` | Browse open requests (volunteers) |
+| `/dashboard` | User dashboard — your requests and accepted tasks |
+| `/login` | Sign in |
+| `/register` | Create an account |
+
+---
+
+## API Overview
+
+All routes are prefixed with `/api`. Authentication uses a Bearer token in the `Authorization` header.
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/api/register` | No | Create account |
+| POST | `/api/login` | No | Get JWT token |
+| GET | `/api/me` | Yes | Current user profile |
+| POST | `/api/requests` | Yes | Submit a help request |
+| GET | `/api/requests` | No | List open requests |
+| GET | `/api/requests/{id}` | No | Get request detail |
+| PATCH | `/api/requests/{id}/accept` | Yes | Volunteer accepts a request |
+| PATCH | `/api/requests/{id}/complete` | Yes | Mark request complete |
+| GET | `/api/track/{code}` | No | Track by code |
+
+Full interactive docs available at `/docs` when the backend is running.
+
+---
+
+## Environment Variables
+
+### Backend
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `MONGO_URL` | Yes | MongoDB connection string |
+| `DB_NAME` | Yes | Database name |
+| `JWT_SECRET` | Yes | Secret key for signing tokens |
+| `ADMIN_EMAIL` | No | Seeded admin email (default: `admin@needsync.org`) |
+| `ADMIN_PASSWORD` | No | Seeded admin password (default: `Admin@123`) |
+
+### Frontend
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `REACT_APP_API_URL` | Yes | Backend base URL |
+
+---
+
+## Common Issues
+
+**`ECONNREFUSED 127.0.0.1:27017`** — MongoDB is not running. Start the `mongod` service and retry.
+
+**`pip install` fails on numpy/pandas** — Make sure you are using Python 3.14 and have the latest pip: `pip install --upgrade pip`.
+
+**CORS errors in browser** — Confirm `REACT_APP_API_URL` matches the address the backend is actually running on.
