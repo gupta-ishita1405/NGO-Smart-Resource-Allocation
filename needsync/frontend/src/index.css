@@ -204,10 +204,10 @@ body {
 .tag-urg-low { background: #8F9C86; color: #FBFBF9; }
 
 /* Status tags */
-.tag-status-pending { background: rgba(224,169,109,0.18); color: #8B5A2B; border: 1px solid #E0A96D; }
-.tag-status-accepted { background: rgba(143,156,134,0.22); color: #1E3A2F; border: 1px solid #8F9C86; }
-.tag-status-completed { background: #1E3A2F; color: #FBFBF9; }
-.tag-status-cancelled { background: #E5E1D8; color: #5C615D; }
+.tag-status-pending { background: #E0A96D; color: #2D312E; border: 1px solid #E0A96D; }
+.tag-status-accepted { background: #8F9C86; color: #FBFBF9; border: 1px solid #8F9C86; }
+.tag-status-completed { background: #1E3A2F; color: #FBFBF9; border: 1px solid #1E3A2F; }
+.tag-status-cancelled { background: #C26D5C; color: #FBFBF9; border: 1px solid #C26D5C; }
 
 .tag-base {
     display: inline-flex;

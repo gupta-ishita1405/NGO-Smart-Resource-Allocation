@@ -1,10 +1,25 @@
 from dotenv import load_dotenv
 from pathlib import Path
-
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
-
 import os
+
+# Load environment variables
+ROOT_DIR = Path(__file__).parent
+env_file = ROOT_DIR / '.env'
+if env_file.exists():
+    load_dotenv(env_file)
+else:
+    # Fallback: try loading from current directory
+    load_dotenv(Path.cwd() / '.env')
+
+# Check required environment variables
+required_vars = ['MONGO_URL', 'DB_NAME', 'JWT_SECRET']
+missing_vars = [var for var in required_vars if var not in os.environ]
+if missing_vars:
+    raise RuntimeError(f"Missing required environment variables: {missing_vars}. Please check your .env file.")
+
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from motor.motor_asyncio import AsyncIOMotorClient
 import logging
 import math
 import uuid
@@ -27,7 +42,55 @@ JWT_SECRET = os.environ['JWT_SECRET']
 JWT_ALGO = 'HS256'
 JWT_EXPIRE_HOURS = 24 * 7
 
-app = FastAPI(title='NeedSync API')
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    await db.users.create_index('email', unique=True)
+    await db.users.create_index('id', unique=True)
+    await db.requests.create_index('id', unique=True)
+    await db.requests.create_index('tracking_code', unique=True)
+    await db.requests.create_index([('status', 1), ('urgency_score', -1)])
+    # Seed admin/demo users
+    admin_email = os.environ.get('ADMIN_EMAIL', 'admin@needsync.org').lower()
+    admin_pw = os.environ.get('ADMIN_PASSWORD', 'Admin@123')
+    if not await db.users.find_one({'email': admin_email}):
+        await db.users.insert_one({
+            'id': str(uuid.uuid4()),
+            'name': 'NeedSync Admin',
+            'email': admin_email,
+            'password_hash': hash_password(admin_pw),
+            'city': 'Mumbai',
+            'skills': ['logistics', 'counsellor', 'medical'],
+            'bio': 'Platform admin & coordinator.',
+            'role': 'admin',
+            'trust_score': 95.0,
+            'completed_count': 0,
+            'accepted_count': 0,
+            'created_at': now_iso(),
+        })
+    # Demo volunteer
+    demo_email = 'demo@needsync.org'
+    if not await db.users.find_one({'email': demo_email}):
+        await db.users.insert_one({
+            'id': str(uuid.uuid4()),
+            'name': 'Priya Sharma',
+            'email': demo_email,
+            'password_hash': hash_password('Demo@123'),
+            'city': 'Mumbai',
+            'skills': ['doctor', 'first-aid'],
+            'bio': 'Doctor — happy to help nearby medical needs.',
+            'role': 'volunteer',
+            'trust_score': 78.0,
+            'completed_count': 4,
+            'accepted_count': 5,
+            'created_at': now_iso(),
+        })
+    logger.info('NeedSync startup complete.')
+    yield
+    # Shutdown
+    client.close()
+
+app = FastAPI(title='NeedSync API', lifespan=lifespan)
 api = APIRouter(prefix='/api')
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -384,59 +447,22 @@ async def root():
     return {'app': 'NeedSync', 'status': 'ok'}
 
 # ---------- Startup ----------
-@app.on_event('startup')
-async def on_startup():
-    await db.users.create_index('email', unique=True)
-    await db.users.create_index('id', unique=True)
-    await db.requests.create_index('id', unique=True)
-    await db.requests.create_index('tracking_code', unique=True)
-    await db.requests.create_index([('status', 1), ('urgency_score', -1)])
-    # Seed admin/demo users
-    admin_email = os.environ.get('ADMIN_EMAIL', 'admin@needsync.org').lower()
-    admin_pw = os.environ.get('ADMIN_PASSWORD', 'Admin@123')
-    if not await db.users.find_one({'email': admin_email}):
-        await db.users.insert_one({
-            'id': str(uuid.uuid4()),
-            'name': 'NeedSync Admin',
-            'email': admin_email,
-            'password_hash': hash_password(admin_pw),
-            'city': 'Mumbai',
-            'skills': ['logistics', 'counsellor', 'medical'],
-            'bio': 'Platform admin & coordinator.',
-            'role': 'admin',
-            'trust_score': 95.0,
-            'completed_count': 0,
-            'accepted_count': 0,
-            'created_at': now_iso(),
-        })
-    # Demo volunteer
-    demo_email = 'demo@needsync.org'
-    if not await db.users.find_one({'email': demo_email}):
-        await db.users.insert_one({
-            'id': str(uuid.uuid4()),
-            'name': 'Priya Sharma',
-            'email': demo_email,
-            'password_hash': hash_password('Demo@123'),
-            'city': 'Mumbai',
-            'skills': ['doctor', 'first-aid'],
-            'bio': 'Doctor — happy to help nearby medical needs.',
-            'role': 'volunteer',
-            'trust_score': 78.0,
-            'completed_count': 4,
-            'accepted_count': 5,
-            'created_at': now_iso(),
-        })
-    logger.info('NeedSync startup complete.')
+# Startup and shutdown handled by lifespan context manager above
 
-@app.on_event('shutdown')
-async def on_shutdown():
-    client.close()
-
-app.include_router(api)
+# Add CORS middleware before including router
+print("Adding CORS middleware...")
+allowed_origins = [
+    origin.strip()
+    for origin in os.environ.get('CORS_ORIGINS', 'http://localhost:3000,http://localhost:3003').split(',')
+    if origin.strip()
+]
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=['*'],
-    allow_headers=['*'],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
 )
+print(f"CORS middleware added for origins: {allowed_origins}")
+
+app.include_router(api)

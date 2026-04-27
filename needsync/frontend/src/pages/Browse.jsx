@@ -42,46 +42,58 @@ const Browse = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-6 md:px-12 py-12 md:py-20" data-testid="browse-page">
-      <div className="flex items-end justify-between flex-wrap gap-6">
-        <div>
-          <p className="label-ns text-[#C26D5C]">Open requests</p>
-          <h1 className="font-serif-ns text-4xl md:text-5xl text-[#1E3A2F] mt-3">People waiting for help.</h1>
+    <div className="min-h-screen bg-gradient-to-br from-[#FBFBF9] via-[#F5F2EB] to-[#F0EDE6]">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 py-12 md:py-20" data-testid="browse-page">
+        <div className="flex items-end justify-between flex-wrap gap-6">
+          <div>
+            <p className="label-ns text-[#C26D5C]">Open Requests</p>
+            <h1 className="font-serif-ns text-4xl md:text-5xl text-[#1E3A2F] mt-3">People waiting for help.</h1>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-[#5C615D]">
+            <Filter className="w-4 h-4" /> Sorted by urgency & recency
+          </div>
         </div>
-        <div className="flex items-center gap-2 text-sm text-[#5C615D]">
-          <Filter className="w-4 h-4" /> Sorted by urgency &amp; recency
-        </div>
-      </div>
 
-      <div className="widget-ns mt-8 grid grid-cols-1 md:grid-cols-4 gap-4" data-testid="filters">
-        <select className="select-ns" value={filters.category} onChange={(e) => setFilters({ ...filters, category: e.target.value })} data-testid="filter-category">
-          <option value="">All Categories</option>
-          <option value="food">Food</option>
-          <option value="medical">Medical</option>
-          <option value="safety">Safety</option>
-          <option value="emotional">Emotional Support</option>
-        </select>
-        <select className="select-ns" value={filters.urgency} onChange={(e) => setFilters({ ...filters, urgency: e.target.value })} data-testid="filter-urgency">
-          <option value="">All Urgency</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-        </select>
-        <input className="input-ns md:col-span-1" placeholder="City (e.g. Mumbai)" value={filters.city} onChange={(e) => setFilters({ ...filters, city: e.target.value })} data-testid="filter-city" />
-        <button onClick={load} className="btn-primary" data-testid="apply-filters">Apply</button>
-      </div>
+        {/* Professional filter card */}
+        <div className="mt-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-[#E5E1D8]/50 p-6" data-testid="filters">
+          <h3 className="font-serif-ns text-xl text-[#1E3A2F] mb-4">Filter Requests</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <select className="select-ns rounded-lg border-[#E5E1D8] focus:border-[#C26D5C] transition-colors duration-200" value={filters.category} onChange={(e) => setFilters({ ...filters, category: e.target.value })} data-testid="filter-category">
+              <option value="">All Categories</option>
+              <option value="food"> Food</option>
+              <option value="medical"> Medical</option>
+              <option value="safety"> Safety</option>
+              <option value="emotional">Emotional Support</option>
+            </select>
+            <select className="select-ns rounded-lg border-[#E5E1D8] focus:border-[#C26D5C] transition-colors duration-200" value={filters.urgency} onChange={(e) => setFilters({ ...filters, urgency: e.target.value })} data-testid="filter-urgency">
+              <option value="">All Urgency Levels</option>
+              <option value="high">🔴 High</option>
+              <option value="medium">🟡 Medium</option>
+              <option value="low">🟢 Low</option>
+            </select>
+            <input className="input-ns md:col-span-1 rounded-lg border-[#E5E1D8] focus:border-[#C26D5C] transition-colors duration-200" placeholder="City (e.g. Mumbai)" value={filters.city} onChange={(e) => setFilters({ ...filters, city: e.target.value })} data-testid="filter-city" />
+            <button onClick={load} className="btn-primary rounded-lg shadow-md hover:shadow-lg transition-all duration-200" data-testid="apply-filters">Apply Filters</button>
+          </div>
+        </div>
 
       {loading ? (
-        <p className="mt-12 text-[#5C615D]" data-testid="browse-loading">Loading requests…</p>
+        <div className="mt-12 text-center">
+          <p className="text-[#5C615D] text-lg" data-testid="browse-loading">Loading requests…</p>
+        </div>
       ) : items.length === 0 ? (
-        <div className="mt-16 text-center" data-testid="browse-empty">
-          <p className="font-serif-ns text-2xl text-[#1E3A2F]">No open requests right now.</p>
-          <p className="text-[#5C615D] mt-2">When help is needed, it will appear here.</p>
+        <div className="mt-16 text-center bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-[#E5E1D8]/50 p-12" data-testid="browse-empty">
+          <div className="max-w-md mx-auto">
+            <h3 className="font-serif-ns text-2xl text-[#1E3A2F] mb-4">No open requests right now</h3>
+            <p className="text-[#5C615D] mb-6 leading-relaxed">When people in your community need help, their requests will appear here. Check back later or help spread the word about NeedSync!</p>
+            <Link to="/request" className="btn-primary inline-block rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+              Request Help Instead
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="requests-grid">
           {items.map((r) => (
-            <article key={r.id} className="card-ns flex flex-col" data-testid={`request-card-${r.id}`}>
+            <article key={r.id} className="card-ns bg-white/90 backdrop-blur-sm shadow-md hover:shadow-lg transition-all duration-300 border-[#E5E1D8]/50 flex flex-col" data-testid={`request-card-${r.id}`}>
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <CategoryTag category={r.category} />
                 <UrgencyTag urgency={r.urgency} />
@@ -105,6 +117,7 @@ const Browse = () => {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 };

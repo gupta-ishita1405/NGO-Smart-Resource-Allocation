@@ -32,7 +32,7 @@ export const StatusTag = ({ status }) => {
 export const CategoryTag = ({ category }) => {
   const labels = { food: 'Food', medical: 'Medical', safety: 'Safety', emotional: 'Emotional Support' };
   return (
-    <span className="tag-base bg-[#1E3A2F]/10 text-[#1E3A2F] border border-[#1E3A2F]/20" data-testid={`category-tag-${category}`}>
+    <span className="tag-base bg-[#1E3A2F] text-[#FBFBF9] border border-[#1E3A2F]" data-testid={`category-tag-${category}`}>
       {labels[category] || category}
     </span>
   );

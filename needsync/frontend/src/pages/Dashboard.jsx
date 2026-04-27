@@ -47,35 +47,38 @@ const Dashboard = () => {
   if (!user) return <Navigate to="/login" replace />;
 
   return (
-    <div className="max-w-7xl mx-auto px-6 md:px-12 py-12" data-testid="dashboard-page">
-      {/* Header bar */}
-      <div className="bg-[#1E3A2F] text-[#FBFBF9] px-8 py-10 flex flex-wrap gap-6 items-end justify-between">
-        <div>
-          <p className="label-ns text-[#E0A96D]">Volunteer Console</p>
-          <h1 className="font-serif-ns text-4xl md:text-5xl mt-2">{user.name}</h1>
-          <p className="text-[#FBFBF9]/75 mt-2 text-sm flex items-center gap-2">
-            <MapPin className="w-4 h-4" /> {user.city} · {user.skills?.join(', ') || 'No skills listed'}
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-[#FBFBF9] via-[#F5F2EB] to-[#F0EDE6]">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 py-12" data-testid="dashboard-page">
+        {/* Header bar - Professional gradient design */}
+        <div className="bg-gradient-to-r from-[#1E3A2F] via-[#2D4A3A] to-[#1E3A2F] text-[#FBFBF9] px-8 py-12 rounded-2xl shadow-xl backdrop-blur-sm border border-[#E5E1D8]/20">
+          <div className="flex flex-wrap gap-8 items-center justify-between">
+            <div>
+              <p className="label-ns text-[#E0A96D] mb-2">Volunteer Dashboard</p>
+              <h1 className="font-serif-ns text-4xl md:text-5xl text-[#FBFBF9]">Welcome back, {user.name}</h1>
+              <p className="text-[#FBFBF9]/80 mt-3 text-sm flex items-center gap-2">
+                <MapPin className="w-4 h-4" /> {user.city} · {user.skills?.join(', ') || 'No skills listed'}
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <TrustBadge score={data?.stats?.trust_score ?? user.trust_score} />
+              <button onClick={load} className="btn-ghost-ns text-[#FBFBF9] hover:bg-[#FBFBF9]/10 rounded-lg px-4 py-2 transition-all duration-200" data-testid="dashboard-refresh">
+                <RefreshCw className="w-4 h-4 inline" /> Refresh
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <TrustBadge score={data?.stats?.trust_score ?? user.trust_score} />
-          <button onClick={load} className="btn-ghost-ns text-[#FBFBF9]" data-testid="dashboard-refresh">
-            <RefreshCw className="w-4 h-4 inline" /> Refresh
-          </button>
-        </div>
-      </div>
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8" data-testid="dashboard-stats">
+      {/* Stats grid - Professional card styling */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 -mt-6 relative z-10" data-testid="dashboard-stats">
         {[
           { label: 'Trust score', val: Math.round(data?.stats?.trust_score ?? user.trust_score), test: 'stat-trust' },
           { label: 'Currently helping', val: data?.stats?.accepted_count ?? 0, test: 'stat-accepted' },
           { label: 'Lives helped', val: data?.stats?.completed_count ?? 0, test: 'stat-completed' },
           { label: 'Nearby pending', val: data?.stats?.nearby_pending ?? 0, test: 'stat-nearby' },
         ].map((s) => (
-          <div key={s.label} className="widget-ns" data-testid={s.test}>
-            <p className="label-ns">{s.label}</p>
-            <p className="font-serif-ns text-5xl text-[#1E3A2F] mt-3">{s.val}</p>
+          <div key={s.label} className="card-ns bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 border-[#E5E1D8]/50" data-testid={s.test}>
+            <p className="label-ns text-[#5C615D]">{s.label}</p>
+            <p className="font-serif-ns text-4xl md:text-5xl text-[#1E3A2F] mt-3">{s.val}</p>
           </div>
         ))}
       </div>
@@ -85,15 +88,18 @@ const Dashboard = () => {
       ) : (
         <>
           {/* Currently helping */}
-          <section className="mt-16">
-            <h2 className="font-serif-ns text-3xl text-[#1E3A2F]">Currently helping</h2>
+          <section className="mt-12">
+            <h2 className="font-serif-ns text-3xl text-[#1E3A2F]">Currently Helping</h2>
             <div className="divider-ns mt-3" />
             {(!data?.accepted || data.accepted.length === 0) ? (
-              <p className="text-[#5C615D] mt-6 text-sm" data-testid="no-accepted">No active commitments. Browse below to start helping.</p>
+              <div className="text-center py-12">
+                <p className="text-[#5C615D] text-lg" data-testid="no-accepted">No active commitments right now.</p>
+                <p className="text-[#8F9C86] mt-2">Browse nearby requests to start helping your community.</p>
+              </div>
             ) : (
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 {data.accepted.map((r) => (
-                  <article key={r.id} className="card-ns" data-testid={`accepted-${r.id}`}>
+                  <article key={r.id} className="card-ns bg-white/90 backdrop-blur-sm shadow-md hover:shadow-lg transition-all duration-300 border-[#E5E1D8]/50" data-testid={`accepted-${r.id}`}>
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <CategoryTag category={r.category} />
                       <UrgencyTag urgency={r.urgency} />
@@ -119,18 +125,21 @@ const Dashboard = () => {
           </section>
 
           {/* Nearby pending */}
-          <section className="mt-16">
+          <section className="mt-12">
             <div className="flex items-end justify-between flex-wrap gap-2">
-              <h2 className="font-serif-ns text-3xl text-[#1E3A2F]">Nearby requests in {user.city}</h2>
-              <Link to="/browse" className="btn-ghost-ns text-xs" data-testid="see-all-link">See all →</Link>
+              <h2 className="font-serif-ns text-3xl text-[#1E3A2F]">Nearby Requests in {user.city}</h2>
+              <Link to="/browse" className="btn-ghost-ns text-xs hover:text-[#C26D5C] transition-colors duration-200" data-testid="see-all-link">See all →</Link>
             </div>
             <div className="divider-ns mt-3" />
             {(!data?.nearby_pending || data.nearby_pending.length === 0) ? (
-              <p className="text-[#5C615D] mt-6 text-sm" data-testid="no-nearby">No nearby pending requests right now.</p>
+              <div className="text-center py-12">
+                <p className="text-[#5C615D] text-lg" data-testid="no-nearby">No nearby pending requests right now.</p>
+                <p className="text-[#8F9C86] mt-2">Check back later or expand your search area.</p>
+              </div>
             ) : (
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {data.nearby_pending.slice(0, 6).map((r) => (
-                  <article key={r.id} className="card-ns" data-testid={`nearby-${r.id}`}>
+                  <article key={r.id} className="card-ns bg-white/90 backdrop-blur-sm shadow-md hover:shadow-lg transition-all duration-300 border-[#E5E1D8]/50" data-testid={`nearby-${r.id}`}>
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <CategoryTag category={r.category} />
                       <UrgencyTag urgency={r.urgency} />
@@ -149,19 +158,21 @@ const Dashboard = () => {
             )}
           </section>
 
-          {/* Completed history */}
+          {/* Completed history - Professional card styling */}
           {data?.completed?.length > 0 && (
-            <section className="mt-16">
-              <h2 className="font-serif-ns text-3xl text-[#1E3A2F]">Completed</h2>
+            <section className="mt-12">
+              <h2 className="font-serif-ns text-3xl text-[#1E3A2F]">Completed Requests</h2>
               <div className="divider-ns mt-3" />
-              <div className="mt-6 space-y-3">
+              <div className="mt-6 space-y-4">
                 {data.completed.map((r) => (
-                  <div key={r.id} className="flex items-center justify-between gap-3 p-4 border border-[#E5E1D8] bg-[#FBFBF9] flex-wrap" data-testid={`completed-${r.id}`}>
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <CategoryTag category={r.category} />
-                      <span className="font-serif-ns text-lg text-[#1E3A2F]">{r.title}</span>
+                  <div key={r.id} className="card-ns bg-white/90 backdrop-blur-sm shadow-md hover:shadow-lg transition-all duration-300 border-[#E5E1D8]/50" data-testid={`completed-${r.id}`}>
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <CategoryTag category={r.category} />
+                        <span className="font-serif-ns text-lg text-[#1E3A2F]">{r.title}</span>
+                      </div>
+                      <StatusTag status={r.status} />
                     </div>
-                    <StatusTag status={r.status} />
                   </div>
                 ))}
               </div>
@@ -169,6 +180,7 @@ const Dashboard = () => {
           )}
         </>
       )}
+      </div>
     </div>
   );
 };
