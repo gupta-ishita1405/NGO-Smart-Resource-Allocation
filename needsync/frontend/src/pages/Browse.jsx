@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api, { formatErr } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -12,7 +12,7 @@ const Browse = () => {
   const [filters, setFilters] = useState({ category: '', city: '', urgency: '' });
   const [loading, setLoading] = useState(true);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const params = { status_f: 'pending' };
@@ -26,9 +26,9 @@ const Browse = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { load(); }, [load]);
 
   const accept = async (rid) => {
     if (!user) { toast.error('Please login as a volunteer first.'); return; }
